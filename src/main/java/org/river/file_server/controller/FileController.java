@@ -51,6 +51,7 @@ public class FileController {
         if(subFilePath.isEmpty()){
             try {
                 response.getWriter().write("please input file path");
+                return ;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -61,6 +62,7 @@ public class FileController {
         if(fileName.isEmpty()){
             try {
                 response.getWriter().write("please input file name");
+                return ;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
