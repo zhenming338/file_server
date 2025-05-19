@@ -5,8 +5,10 @@ spring:
     multipart:
       max-file-size: 1GB
       max-request-size: 5GB
+  profiles:
+    include: database
 server:
-  port: 9999
+  port: 9998
 file:
   path: /data/fileServer/
   host: 127.0.0.1

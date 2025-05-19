@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.river.file_server.mapper.MetaDataMapper">
+
+    <!-- addMetaData -->
+
+    <insert id="addMetaData"> insert into
+        t_meta_data(origin_name_prefix,fixed_name_prefix,name_subfix,size,add_time,add_user,add_host)
+        values ( #{originNamePrefix}, #{fixedNamePrefix}, #{nameSubfix}, #{size}, #{addTime},
+        #{addUser}, #{addHost} ) </insert>
+
+    <!-- getMetaDataByFixedFileNamePrefix -->
+
+    <select id="getMetaDataByFixedFileNamePrefix"> select * from t_meta_data where fixed_name_prefix
+        = #{fixedNamePrefix} </select>
+</mapper>

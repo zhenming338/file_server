@@ -1,26 +1,28 @@
 package org.river.file_server.controller;
 
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.river.file_server.common.Result;
+import org.river.file_server.mapper.MetaDataMapper;
+import org.river.file_server.pojo.entity.MetaData;
+import org.river.file_server.utils.FileHashCal;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.UUID;
-
-import org.river.file_server.common.Result;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("file")
+@RequiredArgsConstructor
 public class FileController {
 
     public static final String FILE_NOTFOUND_ERROR = "file not found";
@@ -30,6 +32,8 @@ public class FileController {
     public static final String FILE_METADATA_ERROR = "file metadata read error";
 
     public static final String DIRECTORY_CREATE_FAILED = "create directory failed";
+
+    public final MetaDataMapper metaDataMapper;
 
     @Value("${file.path}")
     private String baseFilePath;
@@ -48,10 +52,10 @@ public class FileController {
 
         String fullFilePath = baseFilePath + subFilePath;
 
-        if(subFilePath.isEmpty()){
+        if (subFilePath.isEmpty()) {
             try {
                 response.getWriter().write("please input file path");
-                return ;
+                return;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -59,17 +63,23 @@ public class FileController {
         String directoryPath = fullFilePath.substring(0, fullFilePath.lastIndexOf('/'));
         String fileName = fullFilePath.substring(fullFilePath.lastIndexOf('/') + 1);
 
-        if(fileName.isEmpty()){
+//        String fileNamePrefix = fileName.substring(0, fileName.lastIndexOf('.'));
+        MetaData metaData = metaDataMapper.getMetaDataByFixedFileNamePrefix(fileName);
+
+        String encodedFileName = URLEncoder.encode(metaData.getOriginNamePrefix() + metaData.getNameSubfix(), StandardCharsets.UTF_8);
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodedFileName);
+        response.setHeader("Content-Length", metaData.getSize().toString());
+        if (fileName.isEmpty()) {
             try {
                 response.getWriter().write("please input file name");
-                return ;
+                return;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
         System.out.println(fileName);
         System.out.println(directoryPath);
-        File file = new File(fullFilePath);
+        File file = new File(fullFilePath + metaData.getNameSubfix());
         if (!file.exists()) {
             try {
                 PrintWriter writer = response.getWriter();
@@ -81,7 +91,7 @@ public class FileController {
         }
         try (
                 FileInputStream inputStream = new FileInputStream(file);
-                ServletOutputStream outputStream = response.getOutputStream();) {
+                ServletOutputStream outputStream = response.getOutputStream()) {
             byte[] buffer = new byte[10240];
             Integer len;
             while ((len = inputStream.read(buffer)) != -1) {
@@ -93,8 +103,6 @@ public class FileController {
             } else {
                 response.setContentType("application/octet-stream");
             }
-            response.setContentLengthLong(file.length());
-            response.setHeader("Content-Disposition", "inline; filename=/" + file.getName() + "/");
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -102,7 +110,7 @@ public class FileController {
     }
 
     @PostMapping("/upload/**")
-    public Result<?> upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public Result<?> upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws Exception {
         judge();
 
         String uri = request.getRequestURI();
@@ -124,13 +132,43 @@ public class FileController {
         if (originalFilename == null) {
             return Result.error(FILE_METADATA_ERROR);
         }
-        String suffix = originalFilename.substring(originalFilename.indexOf('.'));
 
-        String fixedFileName = Math.abs(UUID.randomUUID().getLeastSignificantBits()) + suffix;
+        String fileHash = FileHashCal.calculateHash(file, "MD5");
+        MetaData metaDataByFixedFileNamePrefix = metaDataMapper.getMetaDataByFixedFileNamePrefix(fileHash);
+
+        if (metaDataByFixedFileNamePrefix != null) {
+            String fileLink = "http://"
+                    + fileServerHost
+                    + ":"
+                    + fileServerPort
+                    + File.separator
+                    + "file/download"
+                    + File.separator
+                    + sufDirectoryPath
+                    + File.separator
+                    + metaDataByFixedFileNamePrefix.getFixedNamePrefix();
+            return Result.success("upload success", fileLink);
+        }
+        MetaData metaData = new MetaData();
+
+        String suffix = originalFilename.substring(originalFilename.lastIndexOf('.'));
+
+        metaData.setOriginNamePrefix(originalFilename.substring(0, originalFilename.lastIndexOf('.')));
+        metaData.setNameSubfix(suffix);
+        metaData.setFixedNamePrefix(fileHash);
+        metaData.setSize(file.getSize());
+        metaData.setAddUser(request.getRemoteUser());
+        metaData.setAddHost(request.getRemoteHost());
+        metaData.setAddTime(LocalDateTime.now());
+        String fixedFileName = metaData.getFixedNamePrefix() + suffix;
         System.out.println(fixedFileName);
-
         String fullFilePath = directoryPath + File.separator + fixedFileName;
         System.out.println(fullFilePath);
+        System.out.println(metaData);
+        System.out.println(request);
+
+
+        metaDataMapper.addMetaData(metaData);
         try {
             file.transferTo(new File(fullFilePath));
             String fileLink = "http://"
@@ -142,7 +180,7 @@ public class FileController {
                     + File.separator
                     + sufDirectoryPath
                     + File.separator
-                    + fixedFileName;
+                    + metaData.getFixedNamePrefix();
             return Result.success("upload success", fileLink);
         } catch (IllegalStateException | IOException e) {
             return Result.error("file transform fail");
