@@ -61,7 +61,6 @@ public class FileController {
             } catch (IOException e) {
                 System.out.println("cannot get outputStream");
                 return;
-
             }
         }
 
