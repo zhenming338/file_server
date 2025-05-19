@@ -5,12 +5,11 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-public class MetaData {
-
+public class Metadata {
     Long id;
-    String originNamePrefix;
-    String fixedNamePrefix;
+    String namePrefix;
     String nameSubfix;
+    String hash;
     Long size;
     LocalDateTime addTime;
     String addUser;

@@ -6,10 +6,9 @@ spring:
       max-file-size: 1GB
       max-request-size: 5GB
   profiles:
-    include: database
+    include:
+      - database
+      - file-dev
 server:
   port: 9998
-file:
-  path: /data/fileServer/
-  host: 127.0.0.1
-  port: ${server.port}
+
