@@ -1,7 +1,7 @@
 spring:
   profiles:
     include:
-      - local
+      - remote
   application:
     name: file-server
   servlet:
