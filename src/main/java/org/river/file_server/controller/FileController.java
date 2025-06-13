@@ -4,9 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
 import org.river.file_server.common.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +26,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("file")
+@RequiredArgsConstructor
 public class FileController {
 
     public static final String FILE_NOTFOUND_ERROR = "file not found";
@@ -31,8 +37,10 @@ public class FileController {
 
     public static final String DIRECTORY_CREATE_FAILED = "create directory failed";
 
+    private static final Logger logger = LoggerFactory.getLogger(FileController.class);
+
     @Value("${file.path}")
-    private String baseFilePath;
+    private String baseFilePathStr;
 
     @Value("${file.host}")
     private String fileServerHost;
@@ -40,99 +48,87 @@ public class FileController {
     @Value("${file.port}")
     private String fileServerPort;
 
+    private Path baseFilePath;
+
+
     @GetMapping("/download/**")
     public void download(HttpServletRequest request, HttpServletResponse response) {
         judge();
         String uri = request.getRequestURI();
-        String subFilePath = uri.substring(uri.indexOf("download/") + "download/".length());
-
-        String fullFilePath = baseFilePath + subFilePath;
-
-        if(subFilePath.isEmpty()){
+        String uriFilePathStr = uri.substring(uri.indexOf("download/") + "download/".length());
+        if (uriFilePathStr.isEmpty()) {
             try {
                 response.getWriter().write("please input file path");
-                return ;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        String directoryPath = fullFilePath.substring(0, fullFilePath.lastIndexOf('/'));
-        String fileName = fullFilePath.substring(fullFilePath.lastIndexOf('/') + 1);
-
-        if(fileName.isEmpty()){
-            try {
-                response.getWriter().write("please input file name");
-                return ;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        System.out.println(fileName);
-        System.out.println(directoryPath);
-        File file = new File(fullFilePath);
-        if (!file.exists()) {
-            try {
-                PrintWriter writer = response.getWriter();
-                writer.write(FILE_NOTFOUND_ERROR);
                 return;
             } catch (IOException e) {
-                System.out.println("cannot get outputStream");
+                throw new RuntimeException(e);
             }
         }
+        Path fullFilePath = baseFilePath.resolve(uriFilePathStr).normalize();
+        logger.debug(fullFilePath.toString());
+        if (!fullFilePath.startsWith(baseFilePath)) {
+            throw new RuntimeException("illegal routes request");
+        }
+        Path fileName = fullFilePath.getFileName();
+        if (fileName == null || fileName.toString().isEmpty()) {
+            throw new RuntimeException("missing file name");
+        }
+        File file = fullFilePath.toFile();
+        if (!file.exists()) {
+            throw new RuntimeException("file not found");
+        }
+
         try (
                 FileInputStream inputStream = new FileInputStream(file);
-                ServletOutputStream outputStream = response.getOutputStream();) {
+                ServletOutputStream outputStream = response.getOutputStream()
+        ) {
+            response.setContentLengthLong(file.length());
+            response.setHeader("Content-Disposition", "inline; filename=" + file.getName());
+            response.setContentType("application/octet-stream");
+            if (fileName.endsWith(".json")) {
+                response.setContentType("application/json");
+            }
             byte[] buffer = new byte[10240];
-            Integer len;
+            int len;
             while ((len = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, len);
             }
-
-            if (fileName.endsWith(".json")) {
-                response.setContentType("application/json");
-            } else {
-                response.setContentType("application/octet-stream");
-            }
-            response.setContentLengthLong(file.length());
-            response.setHeader("Content-Disposition", "inline; filename=/" + file.getName() + "/");
-
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            throw new RuntimeException("write to file error");
         }
+
     }
 
     @PostMapping("/upload/**")
     public Result<?> upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         judge();
-
         String uri = request.getRequestURI();
+        String uriFilePathStr = uri.substring(uri.indexOf("upload/") + "upload/".length());
+        Path fullDirPath = baseFilePath.resolve(uriFilePathStr).normalize();
 
-        String sufDirectoryPath = uri.substring(uri.indexOf("upload/") + "upload/".length());
-        String directoryPath = baseFilePath + sufDirectoryPath;
-        System.out.println(directoryPath);
-        File directory = new File(directoryPath);
+        if (!fullDirPath.startsWith(baseFilePath)) {
+            throw new RuntimeException("illegal router request");
+        }
+        logger.debug(fullDirPath.toString());
+        File directory = fullDirPath.toFile();
+
         if (!directory.isDirectory()) {
-            if (directory.mkdirs()) {
-                System.out.println("create directory" + directoryPath);
-            } else {
-                System.out.println(baseFilePath + "create failed please check the authorized");
-                return Result.error(DIRECTORY_CREATE_FAILED);
+            if (!directory.mkdirs()) {
+                throw new RuntimeException("create directory fail");
             }
         }
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {
-            return Result.error(FILE_METADATA_ERROR);
+            throw new RuntimeException(FILE_METADATA_ERROR);
         }
+
         String suffix = originalFilename.substring(originalFilename.indexOf('.'));
-
         String fixedFileName = Math.abs(UUID.randomUUID().getLeastSignificantBits()) + suffix;
-        System.out.println(fixedFileName);
 
-        String fullFilePath = directoryPath + File.separator + fixedFileName;
-        System.out.println(fullFilePath);
+        Path fullFilePath = fullDirPath.resolve(fixedFileName).normalize();
         try {
-            file.transferTo(new File(fullFilePath));
+            file.transferTo(fullFilePath.toFile());
             String fileLink = "http://"
                     + fileServerHost
                     + ":"
@@ -140,25 +136,22 @@ public class FileController {
                     + File.separator
                     + "file/download"
                     + File.separator
-                    + sufDirectoryPath
+                    + uriFilePathStr
                     + File.separator
                     + fixedFileName;
             return Result.success("upload success", fileLink);
         } catch (IllegalStateException | IOException e) {
-            return Result.error("file transform fail");
+            throw new RuntimeException(e.getMessage());
         }
     }
 
     private void judge() {
-        File file = new File(baseFilePath);
-        if (file.isDirectory()) {
-            // System.out.println(baseFilePath+" is existed directory");
-        } else {
-            if (file.mkdirs()) {
-                System.out.println(baseFilePath + " create success");
-            } else {
-                System.out.println(baseFilePath + "create failed please check the authorized");
+        File file = new File(baseFilePathStr);
+        if (!file.isDirectory()) {
+            if (!file.mkdirs()) {
+                throw new RuntimeException("create base directory failed");
             }
         }
+        baseFilePath = Paths.get(baseFilePathStr).toAbsolutePath().normalize();
     }
 }

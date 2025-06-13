@@ -1,13 +1,15 @@
 spring:
+  profiles:
+    include:
+      - local
   application:
     name: file-server
   servlet:
     multipart:
-      max-file-size: 1GB
-      max-request-size: 5GB
+      max-file-size: 5GB
+      max-request-size: 10GB
 server:
   port: 9999
-file:
-  path: /data/fileServer/
-  host: 127.0.0.1
-  port: ${server.port}
+logging:
+  level:
+    org.river.file_server.controller: debug
