@@ -1,4 +1,0 @@
-file:
-  path: /data/fileServer/
-  host: 127.0.0.1
-  port: ${server.port}
