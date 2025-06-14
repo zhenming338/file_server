@@ -7,7 +7,7 @@ file:
 spring:
   profiles:
     include:
-      - remote
+      - local
   application:
     name: file-server
   servlet:
@@ -16,4 +16,4 @@ spring:
       max-request-size: 10GB
 logging:
   level:
-    org.river.file_server.controller: debug
+    '[org.river.file_server.controller]': debug

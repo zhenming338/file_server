@@ -3,12 +3,10 @@ package org.river.file_server.controller;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-import lombok.RequiredArgsConstructor;
 import org.river.file_server.common.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("file")
@@ -49,7 +48,6 @@ public class FileController {
     private String fileServerPort;
 
     private Path baseFilePath;
-
 
     @GetMapping("/download/**")
     public void download(HttpServletRequest request, HttpServletResponse response) {
@@ -80,8 +78,7 @@ public class FileController {
 
         try (
                 FileInputStream inputStream = new FileInputStream(file);
-                ServletOutputStream outputStream = response.getOutputStream()
-        ) {
+                ServletOutputStream outputStream = response.getOutputStream()) {
             response.setContentLengthLong(file.length());
             response.setHeader("Content-Disposition", "inline; filename=" + file.getName());
             response.setContentType("application/octet-stream");
