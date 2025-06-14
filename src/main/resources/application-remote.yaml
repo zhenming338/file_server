@@ -1,0 +1,4 @@
+file:
+  path: /home/river/file_server/
+  host: 106.15.77.239
+  port: ${server.port}

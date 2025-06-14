@@ -1,17 +1,5 @@
 package org.river.file_server.controller;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.river.file_server.common.Result;
-import org.river.file_server.mapper.MetaDataMapper;
-import org.river.file_server.pojo.entity.Metadata;
-import org.river.file_server.utils.FileHashCal;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,6 +7,24 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+
+import org.river.file_server.common.Result;
+import org.river.file_server.mapper.MetaDataMapper;
+import org.river.file_server.pojo.entity.Metadata;
+import org.river.file_server.utils.FileHashCal;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("file")
@@ -64,7 +70,8 @@ public class FileController {
             }
         }
 
-        String encodedFileName = URLEncoder.encode(metaData.getNamePrefix() + metaData.getNameSubfix(), StandardCharsets.UTF_8);
+        String encodedFileName = URLEncoder.encode(metaData.getNamePrefix() + metaData.getNameSubfix(),
+                StandardCharsets.UTF_8);
         response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodedFileName);
         response.setHeader("Content-Length", metaData.getSize().toString());
 
@@ -73,9 +80,9 @@ public class FileController {
         if (!file.exists()) {
 
             try {
-                PrintWriter writer = response.getWriter();
-                writer.write(FILE_NOTFOUND_ERROR);
-                writer.close();
+                try (PrintWriter writer = response.getWriter()) {
+                    writer.write(FILE_NOTFOUND_ERROR);
+                }
                 return;
             } catch (IOException e) {
                 System.out.println("cannot get outputStream");
@@ -106,7 +113,6 @@ public class FileController {
     public Result<?> upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws Exception {
 
         judge();
-
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {

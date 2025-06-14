@@ -6,16 +6,12 @@
     <!-- addMetaData -->
 
     <insert id="addMetaData"> insert into t_meta_data(name_prefix, hash, name_subfix, size,
-                                                      add_time, add_user, add_host)
-                              values (#{namePrefix}, #{hash}, #{nameSubfix}, #{size}, #{addTime},
-                                      #{addUser}, #{addHost}) </insert>
+        add_time, add_user, add_host) values (#{namePrefix}, #{hash}, #{nameSubfix}, #{size},
+        #{addTime}, #{addUser}, #{addHost}) </insert>
 
     <!-- getMetaDataByFixedFileNamePrefix -->
 
-    <select id="getMetaDataByFixedFileNamePrefix" resultType="org.river.file_server.pojo.entity.Metadata"> select *
-                                                                                                           from t_meta_data
-                                                                                                           where
-                                                                                                               hash
-                                                                                                                   =
-                                                                                                               #{hash} </select>
+    <select id="getMetaDataByFixedFileNamePrefix"
+        resultType="org.river.file_server.pojo.entity.Metadata"> select * from t_meta_data where
+        hash = #{hash} </select>
 </mapper>
