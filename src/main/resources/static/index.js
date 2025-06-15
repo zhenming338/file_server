@@ -1,8 +1,6 @@
-const serverHost = "http://localhost:9999"
-const fileServerHost = serverHost + '/file/download/'
-const apiServerHost = serverHost + "/api/"
 function updateNavigator() {
     doms.navigatorCon.innerHTML = ''
+    requestAnimationFrame()
     pathInfo.pathList.forEach((item, index) => {
         const element = document.createElement('div')
         element.classList.add('navigator-item')
@@ -18,6 +16,7 @@ function updateNavigator() {
 
 function updateFileList() {
     doms.contentCon.innerHTML = ''
+    requestAnimationFrame()
     pathInfo.fileList.forEach((item, index) => {
         let element;
         if (item.isFile) {
@@ -29,7 +28,7 @@ function updateFileList() {
                 }
             })
             pathParm += item.name
-            element.href = fileServerHost + pathParm
+            element.href = "/file/download/" + pathParm
             element.classList.add('file')
         } else {
             element = document.createElement('div')
@@ -116,7 +115,7 @@ function getFileList() {
             param += item + "/"
         }
     })
-    fetch(apiServerHost + 'getDirChildren' + "?path=" + param, {
+    fetch('/api/getDirChildren' + "?path=" + param, {
         method: "get",
     }).then(response => response.json())
         .then(data => {
