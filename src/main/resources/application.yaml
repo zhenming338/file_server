@@ -8,6 +8,12 @@ spring:
   profiles:
     include:
       - local
+  devtools:
+    restart:
+      enabled: true
+      exclude: static/**
+    livereload:
+      enabled: true
   application:
     name: file-server
   servlet:
