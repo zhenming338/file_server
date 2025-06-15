@@ -1,13 +1,13 @@
 function updateNavigator() {
     doms.navigatorCon.innerHTML = ''
-    requestAnimationFrame()
+    const width = window.innerWidth
     pathInfo.pathList.forEach((item, index) => {
         const element = document.createElement('div')
         element.classList.add('navigator-item')
         element.textContent = item
         console.log(item)
         element.addEventListener('click', e => {
-            newPathList = pathInfo.pathList.slice(0, index + 1)
+            const newPathList = pathInfo.pathList.slice(0, index + 1)
             pathInfo.pathList = newPathList
         })
         doms.navigatorCon.appendChild(element)
@@ -16,7 +16,7 @@ function updateNavigator() {
 
 function updateFileList() {
     doms.contentCon.innerHTML = ''
-    requestAnimationFrame()
+    const width = window.innerWidth
     pathInfo.fileList.forEach((item, index) => {
         let element;
         if (item.isFile) {
