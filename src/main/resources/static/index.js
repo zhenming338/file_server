@@ -20,7 +20,11 @@ function updateFileList() {
     pathInfo.fileList.forEach((item, index) => {
         let element;
         if (item.isFile) {
-            element = document.createElement('a')
+            element = document.createElement('div')
+            iconElement = document.createElement('img')
+            iconElement.src = '/icon/copy_icon.png'
+            linkElement = document.createElement('a')
+            linkElement.textContent = item.name
             pathParm = ''
             pathInfo.pathList.forEach((item, index) => {
                 if (index != 0) {
@@ -28,20 +32,35 @@ function updateFileList() {
                 }
             })
             pathParm += item.name
-            element.href = "/file/download/" + pathParm
+            linkElement.href = "/file/download/" + pathParm
+            iconElement.addEventListener('click', e => {
+                navigator.
+                    clipboard
+                    .writeText(
+                        location.origin + "/file/download/" + pathParm
+                    ).then(() => {
+                        alert("copy success")
+                    }).catch((e) => {
+                        alert(e)
+                    })
+            })
+            linkElement.classList.add('file-link')
+            iconElement.classList.add('file-icon')
             element.classList.add('file')
+            element.appendChild(linkElement)
+            element.appendChild(iconElement)
         } else {
             element = document.createElement('div')
+            element.textContent = item.name
+            element.addEventListener('click', (e) => {
+                if (item.isFile) {
+                    console.log("start to downlaod file")
+                } else {
+                    pathInfo.pathList = [...pathInfo.pathList, item.name]
+                }
+            })
         }
-        element.textContent = item.name
         element.classList.add('file-item')
-        element.addEventListener('click', (e) => {
-            if (item.isFile) {
-                console.log("start to downlaod file")
-            } else {
-                pathInfo.pathList = [...pathInfo.pathList, item.name]
-            }
-        })
         doms.contentCon.appendChild(element)
     })
 }

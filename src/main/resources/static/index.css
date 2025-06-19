@@ -116,3 +116,16 @@ h1 {
     background-color: rgba(255, 255, 255, 0);
     color: blue;
 }
+
+
+.file-icon {
+    width: 20px;
+    height: 20px;
+    padding: 2px;
+    opacity: 0.6;
+    transition: 0.3s;
+}
+
+.file-icon:hover {
+    opacity: 1;
+}
