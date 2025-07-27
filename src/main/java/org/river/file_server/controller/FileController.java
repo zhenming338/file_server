@@ -1,8 +1,11 @@
 package org.river.file_server.controller;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -18,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,13 +31,9 @@ import lombok.RequiredArgsConstructor;
 public class FileController {
 
     public static final String FILE_NOTFOUND_ERROR = "file not found";
-
     public static final String DIRECTORY_NOTFOUND_ERROR = "directory not found";
-
     public static final String FILE_METADATA_ERROR = "file metadata read error";
-
     public static final String DIRECTORY_CREATE_FAILED = "create directory failed";
-
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
     @Value("${file.path}")
@@ -76,20 +74,51 @@ public class FileController {
             throw new RuntimeException("file not found");
         }
 
-        try (
-                FileInputStream inputStream = new FileInputStream(file);
-                ServletOutputStream outputStream = response.getOutputStream()) {
-            response.setContentLengthLong(file.length());
-            response.setHeader("Content-Disposition", "inline; filename=" + file.getName());
-            response.setContentType("application/octet-stream");
-            if (fileName.endsWith(".json")) {
-                response.setContentType("application/json");
+        try (RandomAccessFile raf = new RandomAccessFile(file, "r");
+                OutputStream out = response.getOutputStream()) {
+
+            long fileLength = file.length();
+            String range = request.getHeader("Range");
+            response.setHeader("Accept-Ranges", "bytes");
+            response.setContentType(Files.probeContentType(file.toPath()));
+            response.setHeader("Content-Disposition",
+                    "attachment; filename=\"" + URLEncoder.encode(file.getName(), "UTF-8") + "\"");
+            if (range != null && range.startsWith("bytes=")) {
+                // 解析 Range 头
+                String[] parts = range.replace("bytes=", "").split("-");
+                long start = Long.parseLong(parts[0]);
+                long end = parts.length > 1 && !parts[1].isEmpty() ? Long.parseLong(parts[1]) : fileLength - 1;
+                long contentLength = end - start + 1;
+
+                // 设置 206 部分内容响应头
+                response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+                response.setHeader("Content-Range", String.format("bytes %d-%d/%d", start, end, fileLength));
+                response.setHeader("Content-Length", String.valueOf(contentLength));
+
+                raf.seek(start);
+                byte[] buffer = new byte[8192];
+                long remaining = contentLength;
+                int len;
+                while ((len = raf.read(buffer)) != -1 && remaining > 0) {
+                    if (remaining < len) {
+                        out.write(buffer, 0, (int) remaining);
+                        break;
+                    }
+                    out.write(buffer, 0, len);
+                    remaining -= len;
+                }
+
+            } else {
+                // 常规下载
+                response.setHeader("Content-Length", String.valueOf(fileLength));
+                byte[] buffer = new byte[8192];
+                int len;
+                while ((len = raf.read(buffer)) != -1) {
+                    out.write(buffer, 0, len);
+                }
             }
-            byte[] buffer = new byte[10240];
-            int len;
-            while ((len = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, len);
-            }
+
+            out.flush();
         } catch (IOException e) {
             throw new RuntimeException("write to file error");
         }

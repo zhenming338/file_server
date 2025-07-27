@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.river.file_server.common.Result;
 import org.river.file_server.entity.FileInfo;
@@ -24,11 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api")
 public class MainController {
-
     @Value("${file.path}")
     private String basePathStr;
     private final static Logger logger = LoggerFactory.getLogger(MainController.class);
-
+    private static final String REQUEST_ILLEGAL_ERROR = "request path is illegal";
     @GetMapping("/getDirChildren")
     public Result<?> getDirectoryChildren(@RequestParam String path) throws IOException {
         logger.debug("get path : " + path);
@@ -37,36 +37,33 @@ public class MainController {
         logger.debug(basePathStr);
         logger.debug(requPath.toString());
         if (!requPath.startsWith(basePath)) {
-            throw new RuntimeException("request path is illegle");
+            throw new RuntimeException(REQUEST_ILLEGAL_ERROR);
         }
-        logger.debug("full path : " + requPath.toString());
+        logger.debug("full path : " + requPath);
         File file = requPath.toFile();
         if (!file.exists()) {
-            throw new RuntimeException("request path is illegle");
+            throw new RuntimeException(REQUEST_ILLEGAL_ERROR);
         }
-
         List<FileInfo> fileList = new ArrayList<>();
-
         String message = "";
         if (file.isDirectory()) {
             message = "this is a directory";
             File[] children = file.listFiles();
-            for (int i = 0; i < children.length; i++) {
+            for (int i = 0; i < Objects.requireNonNull(children).length; i++) {
                 FileInfo fileInfo = new FileInfo();
                 File child = children[i];
-                fileInfo.setId(Long.valueOf(i));
+                fileInfo.setId((long) i);
                 fileInfo.setName(child.getName());
                 fileInfo.setIsFile(child.isFile());
                 if (child.isFile()) {
                     fileInfo.setSize(child.length());
                 }
                 if (child.isDirectory()) {
-                    fileInfo.setSize(Long.valueOf(child.listFiles().length));
+                    fileInfo.setSize((long) Objects.requireNonNull(child.listFiles()).length);
                 }
                 BasicFileAttributes attr = Files.readAttributes(
                         Paths.get(child.getAbsolutePath()),
                         BasicFileAttributes.class);
-
                 ZonedDateTime createTimeZone = attr.creationTime().toInstant().atZone(ZoneId.systemDefault());
                 ZonedDateTime updateTimeZone = attr.lastModifiedTime().toInstant().atZone(ZoneId.systemDefault());
                 fileInfo.setCreateTime(createTimeZone.toLocalDateTime());

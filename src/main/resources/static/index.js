@@ -64,7 +64,9 @@ function updateFileList() {
         doms.contentCon.appendChild(element)
     })
 }
-let pathInfo = {}
+let pathInfo = {
+    "pathList": null
+}
 let pathListValue = new Proxy(['home'], {
     set(target, key, value) {
         target[key] = value;
