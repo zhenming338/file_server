@@ -53,7 +53,7 @@ public class TestController {
 
                 // 设置 206 部分内容响应头
                 response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-                response.setHeader("Content-Range", String.format("bytes %d-%d/%d", start, end, fileLength));
+                response.setHeader("Content-Range", "bytes %d-%d/%d".formatted(start, end, fileLength));
                 response.setHeader("Content-Length", String.valueOf(contentLength));
 
                 raf.seek(start);

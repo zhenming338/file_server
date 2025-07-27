@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -32,7 +31,7 @@ public class MainController {
     @GetMapping("/getDirChildren")
     public Result<?> getDirectoryChildren(@RequestParam String path) throws IOException {
         logger.debug("get path : " + path);
-        Path basePath = Paths.get(basePathStr).toAbsolutePath();
+        Path basePath = Path.of(basePathStr).toAbsolutePath();
         Path requPath = basePath.resolve(path).normalize().toAbsolutePath();
         logger.debug(basePathStr);
         logger.debug(requPath.toString());
@@ -62,7 +61,7 @@ public class MainController {
                     fileInfo.setSize((long) Objects.requireNonNull(child.listFiles()).length);
                 }
                 BasicFileAttributes attr = Files.readAttributes(
-                        Paths.get(child.getAbsolutePath()),
+                        Path.of(child.getAbsolutePath()),
                         BasicFileAttributes.class);
                 ZonedDateTime createTimeZone = attr.creationTime().toInstant().atZone(ZoneId.systemDefault());
                 ZonedDateTime updateTimeZone = attr.lastModifiedTime().toInstant().atZone(ZoneId.systemDefault());

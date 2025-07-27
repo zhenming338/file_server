@@ -7,7 +7,6 @@ import java.io.RandomAccessFile;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 
 import org.river.file_server.common.Result;
@@ -92,7 +91,7 @@ public class FileController {
 
                 // 设置 206 部分内容响应头
                 response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-                response.setHeader("Content-Range", String.format("bytes %d-%d/%d", start, end, fileLength));
+                response.setHeader("Content-Range", "bytes %d-%d/%d".formatted(start, end, fileLength));
                 response.setHeader("Content-Length", String.valueOf(contentLength));
 
                 raf.seek(start);
@@ -126,7 +125,7 @@ public class FileController {
     }
 
     @PostMapping("/upload/**")
-    public Result<?> upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public Result<?> upload(@RequestParam MultipartFile file, HttpServletRequest request) {
         judge();
         String uri = request.getRequestURI();
         String uriFilePathStr = uri.substring(uri.indexOf("upload/") + "upload/".length());
@@ -178,6 +177,6 @@ public class FileController {
                 throw new RuntimeException("create base directory failed");
             }
         }
-        baseFilePath = Paths.get(baseFilePathStr).toAbsolutePath().normalize();
+        baseFilePath = Path.of(baseFilePathStr).toAbsolutePath().normalize();
     }
 }
