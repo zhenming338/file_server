@@ -7,8 +7,7 @@ function updateNavigator() {
         element.textContent = item
         console.log(item)
         element.addEventListener('click', e => {
-            const newPathList = pathInfo.pathList.slice(0, index + 1)
-            pathInfo.pathList = newPathList
+            pathInfo.pathList = pathInfo.pathList.slice(0, index + 1)
         })
         doms.navigatorCon.appendChild(element)
     });
@@ -21,28 +20,27 @@ function updateFileList() {
         let element;
         if (item.isFile) {
             element = document.createElement('div')
-            iconElement = document.createElement('img')
+            const iconElement = document.createElement('img')
             iconElement.src = '/icon/copy_icon.png'
-            linkElement = document.createElement('a')
+            const linkElement = document.createElement('a')
             linkElement.textContent = item.name
-            pathParm = ''
+            let pathParm = ''
             pathInfo.pathList.forEach((item, index) => {
-                if (index != 0) {
+                if (index !== 0) {
                     pathParm += item + "/"
                 }
             })
             pathParm += item.name
             linkElement.href = "/file/download/" + pathParm
             iconElement.addEventListener('click', e => {
-                navigator.
-                    clipboard
+                navigator.clipboard
                     .writeText(
                         location.origin + "/file/download/" + pathParm
                     ).then(() => {
-                        alert("copy success")
-                    }).catch((e) => {
-                        alert(e)
-                    })
+                    alert("copy success")
+                }).catch((e) => {
+                    alert(e)
+                })
             })
             linkElement.classList.add('file-link')
             iconElement.classList.add('file-icon')
@@ -54,7 +52,7 @@ function updateFileList() {
             element.textContent = item.name
             element.addEventListener('click', (e) => {
                 if (item.isFile) {
-                    console.log("start to downlaod file")
+                    console.log("start to download file")
                 } else {
                     pathInfo.pathList = [...pathInfo.pathList, item.name]
                 }
@@ -64,6 +62,7 @@ function updateFileList() {
         doms.contentCon.appendChild(element)
     })
 }
+
 let pathInfo = {
     "pathList": null
 }
@@ -126,13 +125,13 @@ let doms = {
     contentCon: document.querySelector('.content-container')
 }
 updateNavigator()
-// pathInfo.pathList.push('test')
+
 
 function getFileList() {
     console.log("start to fetch")
     let param = ""
     pathInfo.pathList.forEach((item, index) => {
-        if (index != 0) {
+        if (index !== 0) {
             param += item + "/"
         }
     })
@@ -140,14 +139,13 @@ function getFileList() {
         method: "get",
     }).then(response => response.json())
         .then(data => {
-            if (data.code == 200) {
-                const fileList = data.data.sort((a, b) => {
+            if (data.code === 200) {
+                pathInfo.fileList = data.data.sort((a, b) => {
                     if (a.isFile === b.isFile) {
                         return 0
                     }
                     return a.isFile ? 1 : -1
                 })
-                pathInfo.fileList = fileList
             } else {
                 alert(data.message)
             }
@@ -156,5 +154,7 @@ function getFileList() {
         .catch(err => console.log("请求失败", err))
 }
 
-getFileList()
+window.load = () => {
+    getFileList()
+}
 

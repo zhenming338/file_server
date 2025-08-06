@@ -70,7 +70,6 @@ h1 {
     height: 20px;
     border-right: 2px solid gray;
     cursor: pointer;
-    padding-right: 5px;
     display: flex;
     align-items: center;
     padding: 5px;

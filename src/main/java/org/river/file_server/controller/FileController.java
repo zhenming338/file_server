@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -81,7 +82,7 @@ public class FileController {
             response.setHeader("Accept-Ranges", "bytes");
             response.setContentType(Files.probeContentType(file.toPath()));
             response.setHeader("Content-Disposition",
-                    "attachment; filename=\"" + URLEncoder.encode(file.getName(), "UTF-8") + "\"");
+                    "attachment; filename=\"" + URLEncoder.encode(file.getName(), StandardCharsets.UTF_8) + "\"");
             if (range != null && range.startsWith("bytes=")) {
                 // 解析 Range 头
                 String[] parts = range.replace("bytes=", "").split("-");

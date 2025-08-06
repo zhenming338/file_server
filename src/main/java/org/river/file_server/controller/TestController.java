@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +40,7 @@ public class TestController {
         response.setHeader("Accept-Ranges", "bytes");
         response.setContentType(Files.probeContentType(file.toPath()));
         response.setHeader("Content-Disposition",
-                "attachment; filename=\"" + URLEncoder.encode(file.getName(), "UTF-8") + "\"");
+                "attachment; filename=\"" + URLEncoder.encode(file.getName(), StandardCharsets.UTF_8) + "\"");
 
         try (RandomAccessFile raf = new RandomAccessFile(file, "r");
                 OutputStream out = response.getOutputStream()) {
