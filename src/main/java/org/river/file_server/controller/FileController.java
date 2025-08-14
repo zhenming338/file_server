@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -60,6 +61,7 @@ public class FileController {
                 throw new RuntimeException(e);
             }
         }
+        uriFilePathStr = URLDecoder.decode(uriFilePathStr, StandardCharsets.UTF_8);
         Path fullFilePath = baseFilePath.resolve(uriFilePathStr).normalize();
         logger.debug(fullFilePath.toString());
         if (!fullFilePath.startsWith(baseFilePath)) {
@@ -75,7 +77,7 @@ public class FileController {
         }
 
         try (RandomAccessFile raf = new RandomAccessFile(file, "r");
-                OutputStream out = response.getOutputStream()) {
+             OutputStream out = response.getOutputStream()) {
 
             long fileLength = file.length();
             String range = request.getHeader("Range");

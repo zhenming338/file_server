@@ -1,5 +1,5 @@
 server:
-  port: 9999
+  port: 9998
 file:
   path: /data/fileServer/
   host: 127.0.0.1
