@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.river.file_server.Utils.SystemUtil;
 import org.river.file_server.common.Result;
 import org.river.file_server.entity.FileInfo;
+import org.river.file_server.entity.SystemInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +30,12 @@ public class MainController {
     private String basePathStr;
     private final static Logger logger = LoggerFactory.getLogger(MainController.class);
     private static final String REQUEST_ILLEGAL_ERROR = "request path is illegal";
+
+
+    @GetMapping("/systemInfo")
+    public Result<SystemInfo> getSystemInfo(){
+        return Result.success("get systemInfo success",SystemUtil.getSystemInfo());
+    }
     @GetMapping("/getDirChildren")
     public Result<?> getDirectoryChildren(@RequestParam String path) throws IOException {
         logger.debug("get path : " + path);

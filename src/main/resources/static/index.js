@@ -120,12 +120,41 @@ Object.defineProperty(pathInfo, 'fileList', {
     }
 })
 let doms = {
+    headerCon: document.querySelector(".header-container"),
+    systemCon: document.querySelector(".system-info-container"),
     mainCon: document.querySelector('.main-container'),
     navigatorCon: document.querySelector('.navigator-container'),
     contentCon: document.querySelector('.content-container')
 }
-updateNavigator()
 
+
+function getSystemInfo() {
+    console.log("get systemInfo")
+    fetch("/api/systemInfo", {method: "get"})
+        .then(res => res.json())
+        .then(res => {
+            console.log(res)
+            const saveNum = 0;
+            const data = res.data
+            const totalSpace =(data.totalSpace/1024/1024/1024) .toFixed(saveNum)
+            const freeSpace= (data.freeSpace/1024/1024/1024).toFixed(saveNum)
+            const usedSpace= (totalSpace-freeSpace).toFixed(saveNum)
+
+            const spaceInfoBorder =document.querySelector(".space-info-detail-container")
+            const borderStyle=window.getComputedStyle(spaceInfoBorder)
+            let borderWith=borderStyle.width
+            borderWith=borderWith.slice(0,borderWith.length-2)
+            const root=document.documentElement
+            const blockWidth =(usedSpace/totalSpace) *borderWith
+            root.style.setProperty("--space-block-width",`${blockWidth}px`)
+            const spaceInfoNum = ` ${usedSpace}/${totalSpace} GB`
+            const spaceNumDiv=document.querySelector(".space-info-num-detail")
+            spaceNumDiv.textContent=spaceInfoNum
+
+            const systemNameDetail  =document.querySelector(".system-name-detail")
+            systemNameDetail.textContent=data.operationSystemName
+        })
+}
 
 function getFileList() {
     console.log("start to fetch")
@@ -154,7 +183,9 @@ function getFileList() {
         .catch(err => console.log("请求失败", err))
 }
 
-window.load = () => {
+window.onload = function () {
+    updateNavigator()
+    getSystemInfo()
     getFileList()
 }
 

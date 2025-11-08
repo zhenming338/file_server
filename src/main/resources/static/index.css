@@ -3,7 +3,9 @@ body {
     margin: 0;
 }
 
-
+:root{
+    --space-block-width:0px
+}
 @font-face {
     font-family: 'Edu NSW';
     src: url('/font/Edu_NSW/EduNSWACTHandPre-VariableFont_wght.ttf') format('woff2');
@@ -31,12 +33,42 @@ body {
     font-weight: bold;
     font-style: italic;
 }
-
-h1 {
+.header-container{
+    display: flex;
+    align-items:center;
+    justify-content: space-between;
+    flex-direction: row;
+    padding: 0 20px;
+}
+.header-container h1{
     font-family: 'FiraCode Bold';
     margin-left: 30px;
 }
-
+.header-container .system-info-container{
+    font-family: 'FiraCode Bold', serif;
+}
+.space-info-container,
+.system-name-container{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+.space-info-detail-container{
+    border: 2px solid springgreen;
+    width: 200px;
+    height: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.space-info-detail-container::before{
+    content: "";
+    display: block;
+    height: inherit;
+    border-radius: inherit;
+    background: springgreen;
+    width: var(--space-block-width);
+    transition: all 0.5s ease-in-out;
+}
 .main-container {
     font-family: 'FiraCode Bold';
     width: 80vw;
