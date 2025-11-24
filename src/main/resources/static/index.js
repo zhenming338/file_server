@@ -112,15 +112,15 @@ Object.defineProperty(modelInfo, "modelState", {
     },
     set(newValue) {
         if (newValue) {
-            doms.uploadModel.classList.remove("hidden")
-            doms.pageCover.classList.remove("hidden")
-            const path = pathInfo.pathList.join("/")
-            const uploadTitleEle = document.querySelector(".upload-title")
-            uploadTitleEle.textContent = "上传文件到" + path
+            // doms.uploadModel.classList.remove("hidden")
+            // doms.pageCover.classList.remove("hidden")
+            // const path = pathInfo.pathList.join("/")
+            // const uploadTitleEle = document.querySelector(".upload-title")
+            // uploadTitleEle.textContent = "上传文件到" + path
         } else {
-            doms.uploadModel.classList.add("hidden")
-            doms.pageCover.classList.add("hidden")
-            doms.uploadModel.reset()
+            // doms.uploadModel.classList.add("hidden")
+            // doms.pageCover.classList.add("hidden")
+            // doms.uploadModel.reset()
         }
         modelState = newValue
     }
@@ -148,9 +148,9 @@ let doms = {
     mainCon: document.querySelector('.main-container'),
     navigatorCon: document.querySelector('.navigator-container'),
     contentCon: document.querySelector('.content-container'),
-    uploadBtn: document.querySelector(".upload-container"),
-    uploadModel: document.querySelector(".upload-form"),
-    pageCover: document.querySelector(".page-cover")
+    // uploadBtn: document.querySelector(".upload-container"),
+    // uploadModel: document.querySelector(".upload-form"),
+    // pageCover: document.querySelector(".page-cover")
 }
 
 function getSystemInfo() {
@@ -214,35 +214,35 @@ function hiddenModel() {
 }
 
 function init() {
-    doms.uploadBtn.addEventListener("click", () => {
-        modelInfo.modelState = !modelInfo.modelState
-    })
-    doms.pageCover.addEventListener("click", () => {
-        modelInfo.modelState = false
-    })
-    doms.uploadModel.addEventListener("submit", async (e) => {
-        e.preventDefault()
-        const formData = new FormData(doms.uploadModel)
-
-        const path = "/file/upload/"
-            + pathInfo.pathList.filter((_, index) => index !== 0).join("/")
-        fetch(path, {
-            method: "post",
-            body: formData
-        }).then(res => res.json()).then(data => {
-            if (data.code === 200) {
-                alert("upload success")
-            } else {
-                alert("error :" + data.message)
-            }
-        }).catch(e => {
-
-            alert(e)
-        })
-            .finally(() => {
-                modelInfo.modelState = false
-            })
-    })
+    // doms.uploadBtn.addEventListener("click", () => {
+    //     modelInfo.modelState = !modelInfo.modelState
+    // })
+    // doms.pageCover.addEventListener("click", () => {
+    //     modelInfo.modelState = false
+    // })
+    // doms.uploadModel.addEventListener("submit", async (e) => {
+    //     e.preventDefault()
+    //     const formData = new FormData(doms.uploadModel)
+    //
+    //     const path = "/file/upload/"
+    //         + pathInfo.pathList.filter((_, index) => index !== 0).join("/")
+    //     fetch(path, {
+    //         method: "post",
+    //         body: formData
+    //     }).then(res => res.json()).then(data => {
+    //         if (data.code === 200) {
+    //             alert("upload success")
+    //         } else {
+    //             alert("error :" + data.message)
+    //         }
+    //     }).catch(e => {
+    //
+    //         alert(e)
+    //     })
+    //         .finally(() => {
+    //             modelInfo.modelState = false
+    //         })
+    // })
 }
 
 window.onload = function () {
