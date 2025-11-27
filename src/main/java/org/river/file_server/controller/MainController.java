@@ -7,9 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import org.river.file_server.common.Result;
 import org.river.file_server.entity.FileInfo;
@@ -48,6 +46,7 @@ public class MainController {
         if (file.isDirectory()) {
             message = "this is a directory";
             File[] children = file.listFiles();
+            Arrays.sort(Objects.requireNonNull(children), Comparator.comparing(f -> f.getName().toLowerCase()));
             for (int i = 0; i < Objects.requireNonNull(children).length; i++) {
                 FileInfo fileInfo = new FileInfo();
                 File child = children[i];

@@ -1,8 +1,8 @@
 server:
-  port: 16666
+  port: 9998
 file:
-  path: /data/fileServer/
-  host: 127.0.0.1
+  path: ${file.path}
+  host: ${file.host}
   port: ${server.port}
 spring:
   profiles:
