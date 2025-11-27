@@ -1,3 +1,4 @@
+
 server:
   port: 9998
 file:
@@ -23,3 +24,4 @@ spring:
 logging:
   level:
     '[org.river.file_server.controller]': debug
+

@@ -35,6 +35,7 @@ public class FileController {
     public static final String DIRECTORY_NOTFOUND_ERROR = "directory not found";
     public static final String FILE_METADATA_ERROR = "file metadata read error";
     public static final String DIRECTORY_CREATE_FAILED = "create directory failed";
+    public static final String TOKEN_VAIL_FAILED = "token vail failed";
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
     @Value("${file.path}")
@@ -42,6 +43,9 @@ public class FileController {
 
     @Value("${file.host}")
     private String fileServerHost;
+
+    @Value("${file.tokenTarget}")
+    private String tokenTarget;
 
     @Value("${file.port}")
     private String fileServerPort;
@@ -128,9 +132,13 @@ public class FileController {
     }
 
     @PostMapping("/upload/**")
-    public Result<?> upload(@RequestParam MultipartFile file, HttpServletRequest request) {
+    public Result<?> upload(@RequestParam MultipartFile file, String token, String encode, HttpServletRequest request) {
         judge();
+        if (token == null || token.isEmpty() || !token.equals(tokenTarget)) {
+            throw new RuntimeException(TOKEN_VAIL_FAILED);
+        }
         String uri = request.getRequestURI();
+
         String uriFilePathStr = uri.substring(uri.indexOf("upload/") + "upload/".length());
         Path fullDirPath = baseFilePath.resolve(uriFilePathStr).normalize();
 

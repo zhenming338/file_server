@@ -10,13 +10,39 @@
 </head>
 
 <body>
+<div class="header-container">
     <h1>file server</h1>
-    <div class="main-container">
-        <div class="navigator-container">
+    <div class="system-info-container">
+        <div class="space-info-container">
+            <span class="space-info-label">space info:</span>
+            <div class="space-info-detail-container"></div>
+            <div class="space-info-num-detail"> &nbsp 52/199Gb</div>
         </div>
-        <div class="content-container"></div>
+        <div class="system-name-container">
+            <span class="system-name-label">system name:</span>
+            <div class="system-name-detail">arch linux</div>
+        </div>
+<!--        <div class="upload-container"></div>-->
+<!--        <form class="upload-form hidden" method="post" enctype="multipart/form-data">-->
+<!--            <div class="upload-title"></div>-->
+<!--            <label for="upload-file">上传文件</label>-->
+<!--            <input name="file" id="upload-file" type="file"></input>-->
+<!--            <input name="encode" type="text" value="1" hidden="hidden">-->
+<!--            <br>-->
+<!--            <label for="upload-token">上传密钥</label>-->
+<!--            <input name="token" id="upload-token" type="text"></input>-->
+<!--            <br>-->
+<!--            <button>提交</button>-->
+<!--        </form>-->
+<!--        <div class="page-cover hidden"></div>-->
     </div>
-    <script src="index.js"></script>
+</div>
+<div class="main-container">
+    <div class="navigator-container">
+    </div>
+    <div class="content-container"></div>
+</div>
+<script src="index.js"></script>
 </body>
 
 </html>

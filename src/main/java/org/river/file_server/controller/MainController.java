@@ -26,6 +26,7 @@ public class MainController {
     private String basePathStr;
     private final static Logger logger = LoggerFactory.getLogger(MainController.class);
     private static final String REQUEST_ILLEGAL_ERROR = "request path is illegal";
+
     @GetMapping("/getDirChildren")
     public Result<?> getDirectoryChildren(@RequestParam String path) throws IOException {
         logger.debug("get path : " + path);

@@ -66,6 +66,9 @@ function updateFileList() {
 let pathInfo = {
     "pathList": null
 }
+let modelInfo = {
+    "modelState": false
+}
 let pathListValue = new Proxy(['home'], {
     set(target, key, value) {
         target[key] = value;
@@ -102,6 +105,26 @@ Object.defineProperty(pathInfo, 'pathList',
         }
     }
 )
+let modelState = false;
+Object.defineProperty(modelInfo, "modelState", {
+    get() {
+        return modelState;
+    },
+    set(newValue) {
+        if (newValue) {
+            // doms.uploadModel.classList.remove("hidden")
+            // doms.pageCover.classList.remove("hidden")
+            // const path = pathInfo.pathList.join("/")
+            // const uploadTitleEle = document.querySelector(".upload-title")
+            // uploadTitleEle.textContent = "上传文件到" + path
+        } else {
+            // doms.uploadModel.classList.add("hidden")
+            // doms.pageCover.classList.add("hidden")
+            // doms.uploadModel.reset()
+        }
+        modelState = newValue
+    }
+})
 Object.defineProperty(pathInfo, 'fileList', {
     get() {
         console.log()
@@ -120,12 +143,43 @@ Object.defineProperty(pathInfo, 'fileList', {
     }
 })
 let doms = {
+    headerCon: document.querySelector(".header-container"),
+    systemCon: document.querySelector(".system-info-container"),
     mainCon: document.querySelector('.main-container'),
     navigatorCon: document.querySelector('.navigator-container'),
-    contentCon: document.querySelector('.content-container')
+    contentCon: document.querySelector('.content-container'),
+    // uploadBtn: document.querySelector(".upload-container"),
+    // uploadModel: document.querySelector(".upload-form"),
+    // pageCover: document.querySelector(".page-cover")
 }
-updateNavigator()
 
+function getSystemInfo() {
+    console.log("get systemInfo")
+    fetch("/api/systemInfo", {method: "get"})
+        .then(res => res.json())
+        .then(res => {
+            console.log(res)
+            const saveNum = 0;
+            const data = res.data
+            const totalSpace = (data.totalSpace / 1024 / 1024 / 1024).toFixed(saveNum)
+            const freeSpace = (data.freeSpace / 1024 / 1024 / 1024).toFixed(saveNum)
+            const usedSpace = (totalSpace - freeSpace).toFixed(saveNum)
+
+            const spaceInfoBorder = document.querySelector(".space-info-detail-container")
+            const borderStyle = window.getComputedStyle(spaceInfoBorder)
+            let borderWith = borderStyle.width
+            borderWith = borderWith.slice(0, borderWith.length - 2)
+            const root = document.documentElement
+            const blockWidth = (usedSpace / totalSpace) * borderWith
+            root.style.setProperty("--space-block-width", `${blockWidth}px`)
+            const spaceInfoNum = ` ${usedSpace}/${totalSpace} GB`
+            const spaceNumDiv = document.querySelector(".space-info-num-detail")
+            spaceNumDiv.textContent = spaceInfoNum
+
+            const systemNameDetail = document.querySelector(".system-name-detail")
+            systemNameDetail.textContent = data.operationSystemName
+        })
+}
 
 function getFileList() {
     console.log("start to fetch")
@@ -154,7 +208,47 @@ function getFileList() {
         .catch(err => console.log("请求失败", err))
 }
 
-window.load = () => {
+function hiddenModel() {
+    const uploadFormEle = document.querySelector(".upload-form")
+    uploadFormEle.classList.add("hidden")
+}
+
+function init() {
+    // doms.uploadBtn.addEventListener("click", () => {
+    //     modelInfo.modelState = !modelInfo.modelState
+    // })
+    // doms.pageCover.addEventListener("click", () => {
+    //     modelInfo.modelState = false
+    // })
+    // doms.uploadModel.addEventListener("submit", async (e) => {
+    //     e.preventDefault()
+    //     const formData = new FormData(doms.uploadModel)
+    //
+    //     const path = "/file/upload/"
+    //         + pathInfo.pathList.filter((_, index) => index !== 0).join("/")
+    //     fetch(path, {
+    //         method: "post",
+    //         body: formData
+    //     }).then(res => res.json()).then(data => {
+    //         if (data.code === 200) {
+    //             alert("upload success")
+    //         } else {
+    //             alert("error :" + data.message)
+    //         }
+    //     }).catch(e => {
+    //
+    //         alert(e)
+    //     })
+    //         .finally(() => {
+    //             modelInfo.modelState = false
+    //         })
+    // })
+}
+
+window.onload = function () {
+    init()
+    updateNavigator()
+    getSystemInfo()
     getFileList()
 }
 
